@@ -1,0 +1,4 @@
+"0","packages <- c(""tidyverse"", ""tinytex"", ""ggplot2"")"
+"0","for (package in packages) {"
+"0","  library(package, character.only=T)"
+"0","}"

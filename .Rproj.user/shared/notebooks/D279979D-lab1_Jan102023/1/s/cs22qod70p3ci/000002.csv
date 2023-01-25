@@ -1,0 +1,2 @@
+"0","nhefs_complete <- nhefs_data[complete.cases(nhefs_data), ]"
+"0","#this code subsets to complete cases for the entire data frame"

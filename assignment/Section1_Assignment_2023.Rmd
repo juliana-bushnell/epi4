@@ -1,0 +1,182 @@
+---
+title: "Section 1 Assignment"
+header-includes: \usepackage{setspace}
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r load pkgs, include=FALSE}
+library(boot)
+library(table1)
+library(here)
+library(ggplot2)
+library(survival)
+#Loading Data
+library(readr)
+library(patchwork)
+knitr::opts_chunk$set(echo = TRUE)
+here::i_am("assignment/Section1_Assignment_2023.Rmd")
+section1 <- read_csv(here::here("data/section1.csv"))
+
+
+```
+
+\doublespacing
+
+## Instructions (read carefully): 
+
+* Each student must submit their own (independent) work.
+* Assignments must be done using RMarkdown.
+* Submissions must include the .pdf file and the reproducible .rmd file used to do the homework. R code for all applied questions must be provided and be executable in the .rmd file.
+* This assignment is due electronically through CANVAS on Friday Jan 27 2023.
+* Students should use the practices covered in Section 0 of the course to organize their folder structure and code (i.e., using RStudio Projects with the `here` package).
+
+**Question 1)** Using the language of "censoring" and/or "truncation" (left, right, and/or interval), explain why a prospective cohort study is often seen as higher quality than a retrospective cohort study.
+
+
+censoring - data is unknown (right censor = dont know if event happens at all, left censor = even happened ,we dont know exactly when ie: exact date when contract HIV)
+truncation - excluded from study (right T = event happens before enrollment so excluded from study; left T = 
+
+Prospective cohort studies are generally designed with specific collection methods in mind. 
+***
+
+**Question 2)** Using Figure 1 from the Section 1 notes, draw the line diagram for ID = 0 that would result if this individual was left truncated.
+```{r question 2 plot, echo=FALSE}
+s1q2<-read.csv(here::here("data/s1q2.csv"))
+ggplot(s1q2) + geom_linerange(aes(y = ID, xmin = start_time, xmax = stop_time))
+
+```
+***
+
+\newpage
+
+**Question 3)** For a randomly selected subset of 25 observations out of the N = 100 observations in the "section1_cohort.csv" data, fit a line plot for the time-to-event outcome using ggplot. With this line plot, explore different [themes](https://ggplot2.tidyverse.org/reference/ggtheme.html). Pick your two favorite themes and compare them to the classic theme (i.e., `theme_classic()`). Title each plot with the name of the theme used. Plot each of the three themes in a grid with one row and three columns. Save the plot as a pdf or png file to directory. Include this plot in your homework output and provide an informative caption with the plot.
+
+```{r creating sample}
+s1q3 <- section1[sample(nrow(section1), size=25),]
+```
+
+```{r question3, echo=TRUE}
+
+
+s1q3p1<- ggplot(s1q3) + geom_linerange(aes(y = ID, xmin = start, xmax = stop, group = outcome)) + 
+  geom_point(aes(x=stop, y=ID, shape=(as.factor(outcome)), color=(as.factor(outcome)))) +
+  labs(
+    title = "Line plot for Random Sample n=25",
+    tag = "Classic theme",
+    x = "year",
+    y = "ID",) + theme_classic()
+
+s1q3p2<- ggplot(s1q3) + geom_linerange(aes(y = ID, xmin = start, xmax = stop, group = outcome)) + 
+  geom_point(aes(x=stop, y=ID, shape=(as.factor(outcome)), color=(as.factor(outcome)))) +
+  labs(
+    title = "Line plot for Random Sample n=25",
+    tag = "Grey Theme",
+    x = "year",
+    y = "ID",) + theme_gray()
+
+s1q3p3<- ggplot(s1q3) + geom_linerange(aes(y = ID, xmin = start, xmax = stop, group = outcome)) + 
+  geom_point(aes(x=stop, y=ID, shape=(as.factor(outcome)), color=(as.factor(outcome)))) +
+  labs(
+    title = "Line plot for Random Sample n=25",
+    tag = "Light Theme",
+    x = "year",
+    y = "ID",) + theme_light()
+
+q3grid<-s1q3p1 + s1q3p2 + s1q3p3
+ggsave(here::here("output/question_3_grids.png"), plot = q3grid, scale=1, width=20, height=5, dpi=70)
+
+knitr::include_graphics(here::here("output/question_3_grids.png"))
+
+```
+***
+
+**Question 4)** Please do a basic exploratory analysis of the "section1_cohort.csv" dataset. No more than 1/2 page of results. Provide results for the exposure, the confounder, and the outcome.
+```{r setup, include=TRUE}
+section1_expl <-section1
+
+#creating tbale 1 of Exposure x Outcome 
+section1_expl$outcome1 <- 
+  factor(section1$outcome, 
+         levels=c(0,1,2),
+         labels=c("no outcome", # Reference
+                  "outcome 1", 
+                  "outcome 2"))
+section1_expl$exposure1 <-
+  factor(section1$exposure, 
+          levels=c(0,1),
+                  labels=c("no exposure",
+                               "exposure"))
+
+section1_expl$confounder1 <-
+  factor(section1$confounder, 
+          levels=c(0,1),
+                  labels=c("no confounder",
+                               "confounder"))
+
+table1(~ section1_expl$exposure1 | section1_expl$outcome1*section1_expl$confounder1, data=section1_expl)
+
+```
+Of the sample (n=100), there were 24 subjects with no outcome, 25 subjects with outcome 1, and 51 subjects with outcome 2. The risk of outcome 1 was .33 among those who were exposed. The risk of outcome 2 among those exposed was .54 
+The risk of getting either outcome 1 or 2 among those exposed was .88
+
+***
+
+**Question 5)** Describe, in words, the interpretation of the CDF: 
+$$F(t) = P(T \leq t)$$
+
+AND the survival function:
+
+$$S(t) = P(T > t)$$
+ 
+
+if $T$ represents age at death from all causes, and $t$ represents 64 years of age.
+
+
+F(t) represents the probability of death *before* 64 years of age. S(t) represents the probability of death *after* age 64.
+*** 
+
+
+**Question 6)** Using the first five observations from the synthetic data in Table 1 of the course notes, write out (but do not solve for) the terms for the Kaplan-Meier estimator $\hat{S}(t) = \prod_{k \in t_k \leq t} (1 - d_k/n_k)$. Assume that the total population at risk includes all 10 observations in Table 1.
+$$\hat{S}(t) = (1 - 1/10)(1 - 1/9)(1 - 1/8)(1 - 1/6)$$
+### we exlude the one withdrawl which is why we go from 8 -> 6 in denominator
+
+*** 
+
+**Question 7)** Please explain the difference between the `Surv()` function, and the `survfit()` function in the survival package. 
+
+_surv_ just creates a survival object 
+
+the _survfit_ function uses the object created in the surv function to create the curve while handling left truncation and right censoring automatically
+
+
+***
+
+**Question 8)** Refer to Figure 3 in the Section 1 course notes. Note that the dashed blue line in Figure 3 is from the Kaplan-Meier estimator, while the solid black line is from the simple calculation shown in the equations above the Figure (on page 10). Why don't these figures align exactly?
+
+    The KM estimator has a "redistribution to the right algorithm" as well as a censored individual in that graph specifically. Essentially, the algorithm redistributes the risk from censored participants to all of the remaining participants. Therefore, the KM estimator usually has a higher risk by the end of the study in the presence of censoring than the end of study risk of the empirical risk function.
+
+***
+
+**Question 9)** Fit the `survfit()` function to the "section1_cohort.csv" data. Before you fit, be sure to re-code the outcome so that any non-zero event counts as an event (i.e., re-code outcome=2 to outcome=1). Examine the R object that you get from this fit. How many elements are in this object? What are the first six elements (describe them briefly, don't just provide their element names). Is there enough information in this object for you to determine the median survival time for the outcome? If so, what is the median survival time?
+
+
+
+
+***
+
+**Question 10)** Using the fit from Question 9, plot the cumulative distribution function (not the survival function) using the KM estimator. Interpret the curve assuming that the outcome is death from any cause and the time-scale is year on study.
+
+
+***
+
+**Question 11)** Referring to Figure 6 of the section 1 course notes, why is the cumulative risk represented by the dashed line higher than the cumulative risks represented by the solid black line, even though they are the same events?
+
+***
+
+**Question 12)** What is the main problem with using the cause-specific risk to understand the causal effects of exposures on outcomes of interest?
+
+***
+
+**Question 13)** Provide a single plot of the cause-specific and sub-distribution risk for ``outcome = 1'' in the "section1_cohort.csv" using the Kaplan-Meier, Aalen-Johansen, and Gray's CIF estimators.

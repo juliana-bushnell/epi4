@@ -1,0 +1,6 @@
+﻿ID,Exposure,Confounder,start_time,stop_time,outcome
+1,0,1,0,2.08,Event
+2,0,0,0,2.09,Event
+3,0,1,0,2.54,Event
+4,0,0,0,3.45,Withdrawl
+5,1,0,0,4.16,Event

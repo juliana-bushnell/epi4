@@ -1,0 +1,3 @@
+"0","ggsave(here::here(""output/question_3_grids.png""), plot = q3grid, scale=1, width=20, height=5, dpi=70)"
+"0",""
+"0","knitr::include_graphics(here::here(""output/question_3_grids.png""))"

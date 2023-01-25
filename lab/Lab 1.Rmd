@@ -1,0 +1,32 @@
+---
+title: "Lab 1"
+author: "Juliana Bushnell"
+date: "1/11/2023"
+output: pdf_document
+---
+
+
+```{r, here-i-am, include = FALSE}
+here::i_am(
+  "lab/Lab 1.Rmd"
+)
+```
+# Load PKG step
+```{Loading packages, include=FALSE}
+options(repos = "https://cran.rstudio.com/")
+install.packages("tidyverse")
+install.packages("ggplot2")
+tinytex::install_tinytex()
+library(tidyverse)
+library(tinytex)
+library(ggplot2)
+
+packages <- c("tidyverse", "tinytex", "ggplot2")
+for (package in packages) {
+  library(package, character.only=T)
+}
+```
+
+
+
+
