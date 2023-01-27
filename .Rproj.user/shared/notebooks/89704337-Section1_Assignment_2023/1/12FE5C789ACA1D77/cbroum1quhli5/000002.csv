@@ -1,3 +1,0 @@
-"0","s1q2<-read.csv(here::here(""data/s1q2.csv""))"
-"0","ggplot(s1q2) + geom_linerange(aes(y = ID, xmin = start_time, xmax = stop_time))"
-"0",""

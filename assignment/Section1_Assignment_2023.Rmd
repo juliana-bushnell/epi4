@@ -12,6 +12,8 @@ library(table1)
 library(here)
 library(ggplot2)
 library(survival)
+library(dplyr)
+library(cmprsk)
 #Loading Data
 library(readr)
 library(patchwork)
@@ -35,7 +37,7 @@ section1 <- read_csv(here::here("data/section1.csv"))
 **Question 1)** Using the language of "censoring" and/or "truncation" (left, right, and/or interval), explain why a prospective cohort study is often seen as higher quality than a retrospective cohort study.
 
 
-censoring - data is unknown (right censor = dont know if event happens at all, left censor = even happened ,we dont know exactly when ie: exact date when contract HIV)
+censoring - data is unknown (right censor = dont know if event happens at all, left censor = even happened,we dont know exactly when ie: exact date when contract HIV)
 truncation - excluded from study (right T = event happens before enrollment so excluded from study; left T = 
 
 Prospective cohort studies are generally designed with specific collection methods in mind. 
@@ -161,17 +163,60 @@ the _survfit_ function uses the object created in the surv function to create th
 
 **Question 9)** Fit the `survfit()` function to the "section1_cohort.csv" data. Before you fit, be sure to re-code the outcome so that any non-zero event counts as an event (i.e., re-code outcome=2 to outcome=1). Examine the R object that you get from this fit. How many elements are in this object? What are the first six elements (describe them briefly, don't just provide their element names). Is there enough information in this object for you to determine the median survival time for the outcome? If so, what is the median survival time?
 
+# create dataset for plotting
 
+```{r quesiton 9 recodeing outcome, echo=TRUE}
+section1 %>%
+    count(outcome)
+cohort_s1q9 <- section1 %>%
+    mutate(cs_outcome = as.numeric(outcome > 0))
+cohort_s1q9 %>%
+    count(cs_outcome)
+survmodel_s1q9<-survfit(Surv(time=start, time2=stop, event=cs_outcome) ~1, data=cohort_s1q9)
+
+median(survmodel_s1q9$time)
+
+```
+
+
+# examine dataset
+```{r Question 9 Examine Dataset}
+survmodel_s1q9
+```
+There are 17 elements in this object. The first six are as followed 
+$n is the count of the population 
+$time is the stop time
+$n.risk number of people at risk
+$n.event number of people who got the event 
+$n.censor number of people censored 
+$surv percentage of people alive from the original population
+The median survial time is 1.63.
 
 
 ***
 
 **Question 10)** Using the fit from Question 9, plot the cumulative distribution function (not the survival function) using the KM estimator. Interpret the curve assuming that the outcome is death from any cause and the time-scale is year on study.
 
+```{r question 10 km plot, echo=TRUE}
+#creating plotable data
+q9_plot_dat <- tibble(Year = c(0, survmodel_s1q9$time), Risk = c(0,
+    1 - survmodel_s1q9$surv))
+
+s1q10_kmplot<-ggplot() + geom_step(data = q9_plot_dat, aes(x = Year,
+    y = Risk), direction = "hv") + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0, 0), limits = c(0,1))
+
+ggsave(here::here("output/question9_plot.png"), plot = s1q10_kmplot, scale=1, width=20, height=5, dpi=70)
+
+knitr::include_graphics(here::here("output/question9_plot.png"))
+
+
+```
 
 ***
 
 **Question 11)** Referring to Figure 6 of the section 1 course notes, why is the cumulative risk represented by the dashed line higher than the cumulative risks represented by the solid black line, even though they are the same events?
+
+The black line represents outcome = 1,  dashed line represents the _cumulative cause specific risk_ obtained by km estimator if we prevent outcome=2 form occurring. 
 
 ***
 
@@ -180,3 +225,39 @@ the _survfit_ function uses the object created in the surv function to create th
 ***
 
 **Question 13)** Provide a single plot of the cause-specific and sub-distribution risk for ``outcome = 1'' in the "section1_cohort.csv" using the Kaplan-Meier, Aalen-Johansen, and Gray's CIF estimators.
+```{r question 13, echo=FALSE}
+#Grey CIF function & plotting
+gray_cif <- cuminc(section1$stop, cohort$outcome, cencode = 0)
+str(gray_cif)
+s1q13_graycif <- tibble(time = gray_cif$`1 1`$time, risk = gray_cif$`1 1`$est, Outcome = 1) 
+
+#AJ fit
+s1q13_aj_fit <- survfit(Surv(time = stop, event = outcome) ~ 1, data=section1)
+s1q13_AJ <- tibble(time = s1q13_aj_fit$time, risk = s1q13_aj_fit$pstate[,
+2])
+
+#KM (from question 9)
+
+q9_plot_dat <- tibble(Year = c(0, survmodel_s1q9$time), Risk = c(0,
+    1 - survmodel_s1q9$surv))
+
+
+s1q13_plot<- ggplot() + scale_y_continuous(expand=c(0,0), limits = c(0,1)) + 
+  scale_x_continuous(expand = c(0,0)) +
+  ylab("Risks") +
+  xlab("Time on Study") +
+  geom_step(data = s1q13_graycif, aes(x=time, y=risk)) +
+  geom_step(data = s1q13_AJ, aes(x=time, y=risk)) +
+  geom_step(data = q9_plot_dat, aes(x=time, y=risk)) 
+
+plot_dat <- rbind(s1q13_graycif, s1q13_KM, s1q13_AJ)
+
+
+
+
+```
+
+
+
+
+
