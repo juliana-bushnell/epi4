@@ -2,6 +2,7 @@
 title: "Section 1 Assignment"
 header-includes: \usepackage{setspace}
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -34,10 +35,13 @@ Prospective cohort studies are generally designed with specific collection metho
 **Question 2)** Using Figure 1 from the Section 1 notes, draw the line diagram for ID = 0 that would result if this individual was left truncated.
 ```{r question 2 plot,  echo=FALSE}
 s1q2<-read.csv(here::here("data/s1q2.csv"))
-ggplot(s1q2) + geom_linerange(aes(y = 0, xmin = -5, xmax = -3)) + geom_point(aes(x=-3, y=0)) +  scale_x_continuous(name="Year", limits=c(-5, 5))+ scale_y_continuous(name="ID", limits=c(0, 3)) +labs(
+s1q2plot <- ggplot(s1q2) + geom_linerange(aes(y = 0, xmin = -5, xmax = -3)) + geom_point(aes(x=-3, y=0)) +  scale_x_continuous(name="Year", limits=c(-5, 5))+ scale_y_continuous(name="ID", limits=c(0, 3)) +labs(
     title = "line diagram for ID = 0 that would result if this individual was left truncated where 0 is study start time",
     x = "year",
     y = "ID",) + theme_classic()
+ggsave(here::here("output/question2.png"), plot = s1q2plot, scale=1, width=20, height=5, dpi=70)
+
+knitr::include_graphics(here::here("output/question2.png"))
 
 ```
 ***
@@ -257,8 +261,6 @@ knitr::include_graphics(here::here("output/s1q13figure.png"))
 
 
 ```
-
-
 
 
 
