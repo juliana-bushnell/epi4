@@ -26,27 +26,18 @@ section1 <- read_csv(here::here("data/section1.csv"))
 
 \doublespacing
 
-## Instructions (read carefully): 
-
-* Each student must submit their own (independent) work.
-* Assignments must be done using RMarkdown.
-* Submissions must include the .pdf file and the reproducible .rmd file used to do the homework. R code for all applied questions must be provided and be executable in the .rmd file.
-* This assignment is due electronically through CANVAS on Friday Jan 27 2023.
-* Students should use the practices covered in Section 0 of the course to organize their folder structure and code (i.e., using RStudio Projects with the `here` package).
-
 **Question 1)** Using the language of "censoring" and/or "truncation" (left, right, and/or interval), explain why a prospective cohort study is often seen as higher quality than a retrospective cohort study.
 
-
-censoring - data is unknown (right censor = dont know if event happens at all, left censor = even happened,we dont know exactly when ie: exact date when contract HIV)
-truncation - excluded from study (right T = event happens before enrollment so excluded from study; left T = 
-
-Prospective cohort studies are generally designed with specific collection methods in mind. 
+Prospective cohort studies are generally designed with specific collection methods in mind so are inherently less susceptible to censoring as the data collection methods are specific to the study vs retrospective cohort studies which are limited by the original study design. Prospective cohort studies are less susceptible to truncation as participants in retrospective studies must have the outcome at the start of the study, hypothetically people who died from the outcome of interest would be left trunkated data. Ergo, the risk estimate would not be accurate. Prospective studies are more accurate in their understanding of risk due to following diseasee free people over time.
 ***
 
 **Question 2)** Using Figure 1 from the Section 1 notes, draw the line diagram for ID = 0 that would result if this individual was left truncated.
-```{r question 2 plot, echo=FALSE}
+```{r question 2 plot,  echo=FALSE}
 s1q2<-read.csv(here::here("data/s1q2.csv"))
-ggplot(s1q2) + geom_linerange(aes(y = ID, xmin = start_time, xmax = stop_time))
+ggplot(s1q2) + geom_linerange(aes(y = 0, xmin = -5, xmax = -3)) + geom_point(aes(x=-3, y=0)) +  scale_x_continuous(name="Year", limits=c(-5, 5))+ scale_y_continuous(name="ID", limits=c(0, 3)) +labs(
+    title = "line diagram for ID = 0 that would result if this individual was left truncated where 0 is study start time",
+    x = "year",
+    y = "ID",) + theme_classic()
 
 ```
 ***
@@ -55,11 +46,11 @@ ggplot(s1q2) + geom_linerange(aes(y = ID, xmin = start_time, xmax = stop_time))
 
 **Question 3)** For a randomly selected subset of 25 observations out of the N = 100 observations in the "section1_cohort.csv" data, fit a line plot for the time-to-event outcome using ggplot. With this line plot, explore different [themes](https://ggplot2.tidyverse.org/reference/ggtheme.html). Pick your two favorite themes and compare them to the classic theme (i.e., `theme_classic()`). Title each plot with the name of the theme used. Plot each of the three themes in a grid with one row and three columns. Save the plot as a pdf or png file to directory. Include this plot in your homework output and provide an informative caption with the plot.
 
-```{r creating sample}
+```{r creating sample, echo=FALSE}
 s1q3 <- section1[sample(nrow(section1), size=25),]
 ```
 
-```{r question3, echo=TRUE}
+```{r question3, echo=FALSE}
 
 
 s1q3p1<- ggplot(s1q3) + geom_linerange(aes(y = ID, xmin = start, xmax = stop, group = outcome)) + 
@@ -95,7 +86,7 @@ knitr::include_graphics(here::here("output/question_3_grids.png"))
 ***
 
 **Question 4)** Please do a basic exploratory analysis of the "section1_cohort.csv" dataset. No more than 1/2 page of results. Provide results for the exposure, the confounder, and the outcome.
-```{r setup, include=TRUE}
+```{r setup, echo=FALSE}
 section1_expl <-section1
 
 #creating tbale 1 of Exposure x Outcome 
@@ -142,13 +133,13 @@ F(t) represents the probability of death *before* 64 years of age. S(t) represen
 
 **Question 6)** Using the first five observations from the synthetic data in Table 1 of the course notes, write out (but do not solve for) the terms for the Kaplan-Meier estimator $\hat{S}(t) = \prod_{k \in t_k \leq t} (1 - d_k/n_k)$. Assume that the total population at risk includes all 10 observations in Table 1.
 $$\hat{S}(t) = (1 - 1/10)(1 - 1/9)(1 - 1/8)(1 - 1/6)$$
-### we exlude the one withdrawl which is why we go from 8 -> 6 in denominator
+we excluded the one withdraw which is why we go from 8 -> 6 in denominator
 
 *** 
 
 **Question 7)** Please explain the difference between the `Surv()` function, and the `survfit()` function in the survival package. 
 
-_surv_ just creates a survival object 
+_surv_ creates a survival object 
 
 the _survfit_ function uses the object created in the surv function to create the curve while handling left truncation and right censoring automatically
 
@@ -156,8 +147,8 @@ the _survfit_ function uses the object created in the surv function to create th
 ***
 
 **Question 8)** Refer to Figure 3 in the Section 1 course notes. Note that the dashed blue line in Figure 3 is from the Kaplan-Meier estimator, while the solid black line is from the simple calculation shown in the equations above the Figure (on page 10). Why don't these figures align exactly?
-
-    The KM estimator has a "redistribution to the right algorithm" as well as a censored individual in that graph specifically. Essentially, the algorithm redistributes the risk from censored participants to all of the remaining participants. Therefore, the KM estimator usually has a higher risk by the end of the study in the presence of censoring than the end of study risk of the empirical risk function.
+- calculates average vs km actual start and stop time 
+KM takes into account the actual start and stop time but the solid black line only calculates the average time spent which will generally be different than the actual total start and stop times especially when there are more significant outliers. 
 
 ***
 
@@ -165,7 +156,7 @@ the _survfit_ function uses the object created in the surv function to create th
 
 # create dataset for plotting
 
-```{r quesiton 9 recodeing outcome, echo=TRUE}
+```{r quesiton 9 recodeing outcome, echo=FALSE}
 section1 %>%
     count(outcome)
 cohort_s1q9 <- section1 %>%
@@ -180,7 +171,7 @@ median(survmodel_s1q9$time)
 
 
 # examine dataset
-```{r Question 9 Examine Dataset}
+```{r Question 9 Examine Dataset, echo=FALSE}
 survmodel_s1q9
 ```
 There are 17 elements in this object. The first six are as followed 
@@ -197,13 +188,17 @@ The median survial time is 1.63.
 
 **Question 10)** Using the fit from Question 9, plot the cumulative distribution function (not the survival function) using the KM estimator. Interpret the curve assuming that the outcome is death from any cause and the time-scale is year on study.
 
-```{r question 10 km plot, echo=TRUE}
+```{r question 10 km plot, echo=FALSE}
 #creating plotable data
 q9_plot_dat <- tibble(Year = c(0, survmodel_s1q9$time), Risk = c(0,
-    1 - survmodel_s1q9$surv))
+ 1-survmodel_s1q9$surv))
 
 s1q10_kmplot<-ggplot() + geom_step(data = q9_plot_dat, aes(x = Year,
-    y = Risk), direction = "hv") + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0, 0), limits = c(0,1))
+    y = Risk), direction = "hv") + scale_x_continuous(expand = c(0,0)) + scale_y_continuous(expand = c(0, 0), limits = c(0,1)) + labs(
+    title = "Cumulative Distribution Function Using KM Estimator",
+    tag = "Question 9 Plot",
+    x = "year",
+    y = "Risk of Death from Any Cause",) + theme_gray()
 
 ggsave(here::here("output/question9_plot.png"), plot = s1q10_kmplot, scale=1, width=20, height=5, dpi=70)
 
@@ -216,43 +211,49 @@ knitr::include_graphics(here::here("output/question9_plot.png"))
 
 **Question 11)** Referring to Figure 6 of the section 1 course notes, why is the cumulative risk represented by the dashed line higher than the cumulative risks represented by the solid black line, even though they are the same events?
 
-The black line represents outcome = 1,  dashed line represents the _cumulative cause specific risk_ obtained by km estimator if we prevent outcome=2 form occurring. 
+The black line represents outcome = 1,  dashed line represents the _cumulative cause specific risk_ obtained by km estimator if we prevent outcome=2 from occurring. The KM estimator has a "redistribution to the right algorithm" as well as a censored individual in that graph specifically. Essentially, the algorithm redistributes the risk from censored participants to all of the remaining participants. Therefore, the KM estimator usually has a higher risk by the end of the study in the presence of censoring than the end of study risk of the empirical risk function.
 
 ***
 
 **Question 12)** What is the main problem with using the cause-specific risk to understand the causal effects of exposures on outcomes of interest?
+
+The main problem with using the cause-specific risk to understand the causal effects of exposures on the outcome of interest is that there is no clear way that the competing event is actually prevented (particularly when the competing event is death due to any other cause). In most settings, it is impossible to prevent 100% the other event from occuring, so it's not generalizable to the 'real world.' 
 
 ***
 
 **Question 13)** Provide a single plot of the cause-specific and sub-distribution risk for ``outcome = 1'' in the "section1_cohort.csv" using the Kaplan-Meier, Aalen-Johansen, and Gray's CIF estimators.
 ```{r question 13, echo=FALSE}
 #Grey CIF function & plotting
-gray_cif <- cuminc(section1$stop, cohort$outcome, cencode = 0)
+gray_cif <- cuminc(section1$stop, section1$outcome, cencode = 0)
 str(gray_cif)
 s1q13_graycif <- tibble(time = gray_cif$`1 1`$time, risk = gray_cif$`1 1`$est, Outcome = 1) 
 
 #AJ fit
-s1q13_aj_fit <- survfit(Surv(time = stop, event = outcome) ~ 1, data=section1)
-s1q13_AJ <- tibble(time = s1q13_aj_fit$time, risk = s1q13_aj_fit$pstate[,
+
+ajsection1 <- read_csv(here::here("data/section1.csv")) %>%
+    mutate(outcome = factor(outcome, 0:2, labels = c("censor",
+"event", "competing risk"))) # note converted to fac table(cohort$outcome)
+s1q13_aj_fit <- survfit(Surv(time = stop, event = outcome) ~ 1, data=ajsection1)
+s1q13_AJ <- tibble(time = s1q13_aj_fit$time, risk = s1q13_aj_fit$pstate[,#this is the part of the code that's not working
 2])
 
 #KM (from question 9)
 
-q9_plot_dat <- tibble(Year = c(0, survmodel_s1q9$time), Risk = c(0,
-    1 - survmodel_s1q9$surv))
-
-
-s1q13_plot<- ggplot() + scale_y_continuous(expand=c(0,0), limits = c(0,1)) + 
+s1q13figure <-ggplot() + scale_y_continuous(expand=c(0,0), limits = c(0,1)) + 
   scale_x_continuous(expand = c(0,0)) +
   ylab("Risks") +
-  xlab("Time on Study") +
-  geom_step(data = s1q13_graycif, aes(x=time, y=risk)) +
-  geom_step(data = s1q13_AJ, aes(x=time, y=risk)) +
-  geom_step(data = q9_plot_dat, aes(x=time, y=risk)) 
+  xlab("Time in Study") +
+      geom_step(data = s1q13_graycif, aes(x=time, y=risk),color = "#ff1a8c") + #gray cif plot
+      geom_step(data = q9_plot_dat, aes(x=Year, y=Risk), color="#FFC0CB") + #km curve from question 9
+      geom_step(data = s1q13_AJ, aes(x=time, y=risk),linetype=2) + labs(
+    title = " plot of the cause-specific and sub-distribution risk",
+    tag = "light pink = Kaplan-Meier curve; dark pink = Gray's CIF Estimator; dashed line = Aalen-Johansen ",
+    x = "time",
+    y = "ID",)
+      
+ggsave(here::here("output/s1q13figure.png"), plot = s1q13figure, scale=1, width=20, height=5, dpi=70)
 
-plot_dat <- rbind(s1q13_graycif, s1q13_KM, s1q13_AJ)
-
-
+knitr::include_graphics(here::here("output/s1q13figure.png"))
 
 
 ```
