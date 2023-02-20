@@ -239,7 +239,7 @@ The mean of the stabilized weights is essentially 1. The max weight is not large
 
 **Question 14** Consider a two-arm placebo controlled randomized trial with four mutually exclusive strata labeled $S=1, S=2, S=3$ and $S=4$. Suppose that the treatment was assigned to: 20% of individuals in stratum $S=1$; 30% of individuals in stratum $S=2$; 15% of individuals in stratum $S=3$; and 10% of individuals in stratum $S=4$. Can you determine all of the propensity score values in the sample of individuals in the trial?
 
-Propensity scores are defined as the probability of receiving treatment, usually used for specific strata characteristics. Using these probabilities given in the question for the four mutually exclusive strata (S=1 20%, S=2 30%, S=3 15%, & S=4 10%) in the two-arm placebo controlled randomized trial, researchers can determine all of the propensity score values in the sample of individuals. 
+Propensity scores are defined as the probability of receiving treatment, usually used for specific strata characteristics. Using these probabilities given in the question for the four mutually exclusive strata (S=1 20%, S=2 30%, S=3 15%, & S=4 10%) in the two-arm placebo controlled randomized trial, researchers can determine all of the propensity score values in the sample of individuals. Because they are mutually exclusive and the individuals are randomized, the propensity scores are .2, .3, .14, and .1 for S=1, S=2, S=3, and S=4 respectively. 
 
 
 ***
