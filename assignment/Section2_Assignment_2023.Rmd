@@ -70,6 +70,8 @@ $$\psi = E(Y^{\overline{d}_4=1,{\underline{d}_5=0}}) - E(Y^{\overline{d}_3=1,{\u
 
 
 ***
+\newpage
+
 
 **Question 5:** Please complete the Table under SUTVA:
 
@@ -87,7 +89,7 @@ s1q5table<- tibble(
 )
 
 ```
-\newpage
+
 ```{r table1, include=T, echo=F} 
 kable(s1q5table, format = "latex", caption = "Table Under SUTVA (n=6)", align = 'c' , booktabs = T, ) %>%
   kable_styling(latex_options = "striped")
@@ -172,13 +174,13 @@ Is positivity violated in these data? Why or why not?
 
 Positivity is when there are exposed and unexposed individuals at all confounding levels. Nonpositivity is not good because those who were unexposed in the sample are unlikely to be exposed and vise versa. When this occurs, it doesn't make sense in most cases to estimate the average treatment effect, since a subset of the population who may never realistically be exposed (or unexposed). 
 
-```{r question 13i, echo=FALSE, warning=FALSE, error=FALSE, }
+```{r question 13i, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 
 data("eager_sim_obs")
 # page 25 in notes
 
 propensity_score <- glm(sim_A ~ eligibility + loss_num + age +time_try_pregnant + BMI + meanAP + sim_Y, data=eager_sim_obs, family = binomial(link="logit") )$fitted.values
-head(propensity_score)
+
 
 set.seed(123)
 
@@ -201,12 +203,12 @@ knitr::include_graphics(here::here("output/qs1q13p1.png"))
 
 When looking at the graph, positivity is not violated.  This is because the mass of density for the exposed (orange) occurs in the same place as the density mass for the unexposed (black). 
 
-```{r question 13ii TOP 5, echo=FALSE}
+```{r question 13ii TOP 5, echo=FALSE, include=FALSE}
 head(sort(propensity_score,decreasing=TRUE),n=5)
 
 ```
 The top 5 propensity scores are 0.8417561 0.8305905 0.8250527 0.8147493 0.8094557. 
-```{r question 13ii BOTTOM 5, echo=FALSE}
+```{r question 13ii BOTTOM 5, echo=FALSE, include=FALSE}
 head(sort(propensity_score,decreasing=FALSE),n=5)
 
 ```
@@ -218,13 +220,18 @@ min(propensity_score)
 ```
 
 
-```{r question 13iii summary, echo=FALSE}
+```{r question 13iii summary, echo=FALSE, include=FALSE}
 sw <- (mean(exposure)/propensity_score) * 
             exposure + ((1 - mean(exposure))/(1 -  propensity_score)) * 
                   (1 - exposure)
 summary(sw)
 
 ```
+ Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 
+ 
+ 0.5214  0.8209  0.9507  1.0003  1.1231  2.7366 
+
 The mean of the stabilized weights is essentially 1. The max weight is not large relative to the mean and min. This suggests that the weights are "well-behaved." Thus, in this particular case, we are not concerned with violations of the positivity assumption.
 
 
@@ -240,6 +247,8 @@ Propensity scores are defined as the probability of receiving treatment, usually
 **(Bonus?) Question 15** Using the information provided in Question 14, please write a logistic regression equation that the defines the propensity score for this randomized trial. What are the parameter values in this logistic regression model?
 
 P(X|S1,S2,S3,S4) = B0 + (B1*S1) + (B2*S2) + (B3*S3) + (B4*S4)
+
+
 where S1= .20
 S2=.30
 S3=.15
