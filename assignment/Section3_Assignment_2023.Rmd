@@ -1,65 +1,238 @@
 ---
 title: "Section 3 Assignment"
 header-includes:
-    - \usepackage{setspace}
-    - \usepackage{xfrac}
-    - \DeclareMathOperator{\logit}{logit}
-    - \DeclareMathOperator{\expit}{expit}
+- \usepackage{setspace}
+- \usepackage{xfrac}
+- \DeclareMathOperator{\logit}{logit}
+- \DeclareMathOperator{\expit}{expit}
 urlcolor: blue
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 link-citations: yes
-output: pdf_document
-always_allow_html: true
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(here)
-library(tidyverse)
-thm <- theme_classic() +
-  theme(
-    legend.position = "top",
-    legend.background = element_rect(fill = "transparent", colour = NA),
-    legend.key = element_rect(fill = "transparent", colour = NA)
-  )
-theme_set(thm)
+here::i_am("assignment/Section3_Assignment_2023.Rmd")
+pacman::p_load(tidyverse, here, dplyr, gtsummary, gt, webshot2,sandwich,stats,here, ggplot2,stats, graphics, splines,boot,ggExtra,formatR,
+               gridExtra,skimr,Hmisc,RColorBrewer, lmtest)
 ```
 
 \doublespacing
 
-## Instructions (read carefully): 
 
-* Each student must submit their own (independent) work.
-* Assignments must be done using RMarkdown.
-* Submissions must include the .pdf file and the reproducible .rmd file used to do the homework. R code for all applied questions must be provided and be executable in the .rmd file.
-* This assignment is due electronically through CANVAS on Sunday March 5 2023.
-* Students should use the practices covered in Section 0 of the course to organize their folder structure and code (i.e., using RStudio Projects with the `here` package).
+**Question 1:** Why do the logistic, log, and identity link functions enable us to interpret coefficient as a log odds ratios, log risk ratios, and risk differences? Please show the math.
+Below are the equations that prove how the logistic, log, and identity link functions enable us to interpret coefficient as a log odds ratios, log risk ratios, and risk differences.
 
-**Question 1:** Why do the logistic, log, and identity link functions enable us to interpret coefficient as a log-odds ratios, log-risk ratios, and risk differences? Please show the math.
+
+Log Odds Ratio 
+General Form:
+$$\log[\frac {P(Y=1|X)}{1-P(Y=1|X)}]=\beta_0 + \beta_1 X $$
+When X=1
+$$\log[(\frac {P(Y=1|X=1)}{1-P(Y=1|X=1)}]=\beta_0 + \beta_1*1 =  \beta_0 + \beta_1 $$
+When X=0
+$$\log[\frac {P(Y=1|X=0)}{1-P(Y=1|X=0)}]=\beta_0 + \beta_1*0= \beta_0 $$
+$$\log[\frac {\frac {P(Y=1|X=1)}{1-P(Y=1|X=1)}} {\frac {P(Y=1|X=0)}{1-P(Y=1|X=0)}}] = \beta_0 + \beta_1-\beta_0 = \beta_1 $$
+
+Log Risk Ratio 
+General form:
+$$\log[{P(Y=1|X)}]=\beta_0 + \beta_1X$$
+When X=1
+$$\log[{P(Y=1|X=1)}]=\beta_0 + \beta_1*1=\beta_0 + \beta_1$$
+When X=0
+$$\log[{P(Y=1|X=0)}]=\beta_0 + \beta_1*0=\beta_0$$
+$$\log[\frac {{P(Y=1|X=1)}}{{(1-P(Y=1|X=0))}}] = \beta_0 + \beta_1-\beta_0 = \beta_1$$ 
+
+Log risk difference-  
+General Form: 
+$$\log[{P(Y=1|X)}]=\beta_0 + \beta_1X$$
+When X=1
+$$\log[{P(Y=1|X=1)}]=\beta_0 + \beta_1*1=\beta_0 + \beta_1$$
+When X=0
+$$\log[{P(Y=1|X=0)}]=\beta_0 + \beta_1*0=\beta_0$$
+$$ \log[{P(Y=1|X=1)}]-(1-\log[{P(Y=1|X=0)}]) =  \beta_0 + \beta_1-\beta_0 = \beta_1 $$
+
 
 ***
 
-**Question 2)**  Using the NHEFS dataset (available on CANVAS), please plot the unadjusted dose-response relation between smoking intensity and the *risk* of high blood pressure.
+**Question 2)**  Using the NHEFS dataset (available on CANVAS), please plot the unadjusted dose response relation between smoking intensity and the *risk* of high blood pressure.
+```{r loading NHEFS data, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+file_loc <-here::here("data/nhefs_data.csv")
+nhefs <-read_csv(file_loc)
+```
+
+```{r Question 2 MODEL, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+s3q2m1 <-glm(high_BP ~ bs(smokeintensity, df=3, degree=3), data = nhefs, family = binomial(link = "logit"))
+nhefs$s3q2m1pred <-predict(s3q2m1, type="response")
+```
+
+```{r Question 2 Plot, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+q2plot <-ggplot(nhefs) +  geom_line(aes(y=s3q2m1pred,x=smokeintensity),color="red") 
+ggsave(here::here("output/q2plot.png"), plot = q2plot,  scale=1, width=5, height=5, dpi=70)
+
+knitr::include_graphics(here::here("output/q2plot.png"))
+```
+
+
+
 
 ***
 
-**Question 3)** Using the NHEFS data and an outcome regression model, estimate the conditionally and marginally adjusted risk ratio and risk difference for the association between quitting smoking and high blood pressure. Adjust for smokeintensity, sex, age, race, school, and marital status. Please use appropriate coding for all variables, but do not adjust for interaction effects. As always, use appropriate standard error eestimators.
+**Question 3)** Using the NHEFS data and an outcome regression model, estimate the conditionally and marginally adjusted risk ratio and risk difference for the association between quitting smoking and high blood pressure. Adjust for smokeintensity, sex, age, race, school, and marital status. Please use appropriate coding for all variables, but do not adjust for interaction effects. As always, use appropriate standard error estimators.
+ %>% select(qsmk, high_BP, smokeintensity, sex, age,race,school,marital)
+```{r cleaning marriage vairable, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+nhefs$marital <-ifelse(nhefs$marital == 6, 5, nhefs$marital)
+nhefs$marital <-ifelse(nhefs$marital == 8, 2, nhefs$marital)
+
+```
+
+```{r question 3 model, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+q3m1 <-glm(high_BP ~ qsmk + bs(smokeintensity, df=3, degree=3) + factor(sex) + bs(age, df=3, degree=3) + factor(race) + bs(school, df=3, degree=3) + factor(marital), data = nhefs,
+    family = binomial("logit"))
+
+mu1 <-predict(q3m1, newdata = transform(nhefs, qsmk = 1), type = "response")
+mu0 <-predict(q3m1, newdata = transform(nhefs, qsmk = 0), type = "response")
+
+q3m1rr <-mean(mu1)/mean(mu0)
+q3m1rd <- mean(mu1) - mean(mu0)
+```
+
+
+```{r question 3 confidence intervals, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+bootfunc <- function(data, index) {
+    boot_dat <- data[index, ]
+    ms_model <-glm(high_BP ~ qsmk + bs(smokeintensity, df=3, degree=3) + factor(sex) + bs(age, df=3, degree=3) + factor(race) + bs(school, df=3, degree=3) + factor(marital), data = boot_dat,
+    family = binomial("logit"))
+    mu1 <- predict(ms_model, newdata = transform(boot_dat,
+        qsmk = 1), type = "response")
+    mu0 <- predict(ms_model, newdata = transform(boot_dat,
+        qsmk = 0), type = "response")
+    marg_stand_RR_ <- mean(mu1)/mean(mu0)
+    marg_stand_RD_ <- mean(mu1) - mean(mu0)
+    res <- c(marg_stand_RD_, marg_stand_RR_)
+    return(res)
+}
+
+set.seed(16)
+boot_res <- boot(nhefs, bootfunc, R = 2000)
+boot_RD <- boot.ci(boot_res, index = 1)
+boot_RR <- boot.ci(boot_res, index = 2)
+
+
+```
+
+The marginally adjusted risk ratio is 0.537 (0.404,  0.667)
+The marginally adjusted risk difference is -0.124  (-0.164, -0.084)
+
+#Conditional Portion
+```{r question 3 conditional model, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+q3m2rd <-glm(high_BP ~ qsmk + bs(smokeintensity, df=3, degree=3) + factor(sex) + bs(age, df=3, degree=3) + 
+                factor(race) + bs(school, df=3, degree=3) + factor(marital), data = nhefs,
+    family = gaussian(link = "identity"))
+SE.q3m2rd<- sqrt(sandwich(q3m2rd)[2, 2])
+
+q3m3rr <-glm(high_BP ~ qsmk + bs(smokeintensity, df=3, degree=3) + factor(sex) + bs(age, df=3, degree=3) + 
+                factor(race) + bs(school, df=3, degree=3) + factor(marital), data = nhefs,
+    family = poisson(link ="log"))
+SE.q3m3rr<-sqrt(sandwich(q3m3rr)[2, 2])
+
+```
+
+The conditional RR is 0.540 SE: 0.119
+The conditional RD is -0.127 SE: 0.021
 
 ***
 
 **Question 4)** For the risk difference model used in question 3, are there any relevant interaction effects?
 
+```{r question 4 model & sum, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+nhefsq4 <-read_csv(file_loc)  %>% select(qsmk, high_BP, smokeintensity, sex, age,race,school,marital)
+interaction_effect<-lm(high_BP~ .^2, data=nhefsq4)
+```
+
+The significant interactions for the data for the model from question 3 are: 
+
+- qsmk:sex P = 0.01173 *
+- qsmk:race P = 0.00590 **
+- smokeintensity:race P = 0.00465 **
+- sex:race P = 0.03608 * 
+- sex:marital P = 0.01915 * 
+- age:race P = 0.00441 **
+- school:marital P = 0.03038 *
+
 ***
 
-**Question 5:** Using the NHEFS data and a propensity score model with IP weighting, estimate the marginally adjusted risk ratio and risk difference for the association between quitting smoking and high blood pressure. Adjust for smokeintensity, sex, age, race, school, and marital status. Please use appropriate coding for all variables, but do not adjust for interaction effects. As always, use appropriate standard error eestimators.
+**Question 5:** Using the NHEFS data and a propensity score model with IP weighting, estimate the marginally adjusted risk ratio and risk difference for the association between quitting smoking and high blood pressure. Adjust for smokeintensity, sex, age, race, school, and marital status. Please use appropriate coding for all variables, but do not adjust for interaction effects. As always, use appropriate standard error estimators.
+
+```{r Q5 Propensity Score creation, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+nhefs$propensity_score <-glm(qsmk ~ bs(smokeintensity, df=3, degree=3) + factor(sex) + bs(age, df=3, degree=3)
+                              + factor(race) + bs(school, df=3, degree=3) + factor(marital), data = nhefs,
+    family = binomial("logit"))$fitted.values
+```
+
+```{r inverse probability, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+nhefs$sw <-(mean(nhefs$qsmk)/nhefs$propensity_score) *
+nhefs$qsmk + ((1-mean(nhefs$qsmk))/(1-nhefs$propensity_score)) * (1-nhefs$qsmk)
+
+```
+
+```{r rd and rr for question 5, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+q5mrd <-glm(high_BP ~ qsmk, data = nhefs, weights = sw, family = quasibinomial("identity"))
+se.q5mrd<-coeftest(q5mrd, vcov. = vcovHC)
+
+q5mrr <-glm(high_BP ~ qsmk, data = nhefs, weights = sw, family = poisson("log"))
+se.q5mrr<- coeftest(q5mrr, vcov. = vcovHC)
+
+```
+Using propensity score model with IP weighting, the marginally adjusted risk difference: -0.116 SE: 0.012
+Using propensity score model with IP weighting, the marginally adjusted risk ratio: 0.573 SE: 0.131
+
 
 ***
 
 **Question 6:** Is the positivity assumption met for the propensity score model fit in Question 5? Is the positivity assumption required to interpret the estimate in Question 5 AND Question 3 as a causal contrast of potential outcomes? Why?
 
-***
+```{r q6 graph, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(123)
 
-**Question 7:**  Consider the stem cell transplant data available on CANVAS. These data contain information on 177 patients who received stem cell transplants for leukemia treatment. The event of interest in these data is relapse, which occurred in 56 individuals. Competing events include transplant-related death, which occurred in 75 individuals. Finally, 46 individuals were censored in the study. The goal of this study is to evaluate the effect of transplant source (Type of Transplant) on relapse rates, adjusting for sex, disease type (lymphoblastic or myeloblastic leukemia, abbreviated as ALL and AML, respectively), phase at transplant (Relapse, CR1, CR2, CR3), source of stem cells (bone marrow and peripheral blood, coded as BM+PB, or peripheral blood, coded as PB), and age. 
+exposure<-nhefs$high_BP
+s3q6p1 <-data.frame(nhefs$propensity_score, Exposure=as.factor(nhefs$high_BP))
+s3q6p1p<-ggplot(data=s3q6p1) +
+  scale_y_continuous(expand=c(0,0)) +
+  scale_x_continuous(expand=c(0,0))+
+    ylab("Density") + xlab("Propensity Score for question 5 model") +
+      scale_color_manual(values=c("#000000","#D55E00")) +
+        geom_density(aes(x= nhefs$propensity_score, group=Exposure, color=Exposure)) +
+  xlim(0,1)
 
-Please plot the cumulative sub-distribution risk of relapse (Status = 1) among those who received bone marrow and peripheral blood (BM+PB) transplants relative to those who received peripheral blood (PB) alone.
+
+ggsave(here::here("output/s3q6p1p.png"), plot = s3q6p1p,  scale=1, width=5, height=5, dpi=70)
+
+knitr::include_graphics(here::here("output/s3q6p1p.png"))
+```
+When looking at the graph, positivity is not violated for question 6 model.  This is because the mass of density for the exposed (orange) occurs in essentially the same place as the density mass for the unexposed (black). 
+
+
+```{r q6 stab weights, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+s3q6sw <-(mean(nhefs$high_BP)/nhefs$propensity_score) * 
+            nhefs$propensity_score + ((1-mean(nhefs$high_BP))/(1-nhefs$propensity_score)) * 
+                  (1-nhefs$high_BP)
+
+```
+ Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 
+ 
+ 0.5214  0.8209  0.9507  1.0003  1.1231  2.7366 
+
+The mean of the stabilized weights is essentially 1. The max weight is not large relative to the mean and min. This suggests that the weights are "well behaved." Thus, in this particular case, we are not concerned with violations of the positivity assumption.
+
+
+Positivity assumption is required to interpret the estimate in Question 3 and 5 because we are using the average treatment effect. We need to ensure that there are exposed and unexposed individuals on all levels in order to ensure that the positivity assumption is not violated. 
+
+
+
 
 ***
