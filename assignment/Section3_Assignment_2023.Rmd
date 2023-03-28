@@ -70,7 +70,8 @@ nhefs$s3q2m1pred <-predict(s3q2m1, type="response")
 ```
 
 ```{r Question 2 Plot, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
-q2plot <-ggplot(nhefs) +  geom_line(aes(y=s3q2m1pred,x=smokeintensity),color="red") 
+q2plot <-ggplot(nhefs) +  geom_line(aes(y=s3q2m1pred,x=smokeintensity),color="red") +
+    ylab("Risk of high blood pressure") + xlab("Smoke Intensity Variable") 
 ggsave(here::here("output/q2plot.png"), plot = q2plot,  scale=1, width=5, height=5, dpi=70)
 
 knitr::include_graphics(here::here("output/q2plot.png"))
@@ -173,7 +174,7 @@ nhefs$propensity_score <-glm(qsmk ~ bs(smokeintensity, df=3, degree=3) + factor(
     family = binomial("logit"))$fitted.values
 ```
 
-```{r inverse probability, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+```{r inverse probability weighting creation, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 nhefs$sw <-(mean(nhefs$qsmk)/nhefs$propensity_score) *
 nhefs$qsmk + ((1-mean(nhefs$qsmk))/(1-nhefs$propensity_score)) * (1-nhefs$qsmk)
 
