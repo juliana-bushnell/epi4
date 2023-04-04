@@ -1,0 +1,97 @@
+---
+title: "Section 4 Assignment"
+header-includes:
+    - \usepackage{setspace}
+    - \usepackage{xfrac}
+    - \DeclareMathOperator{\logit}{logit}
+    - \DeclareMathOperator{\expit}{expit}
+urlcolor: blue
+link-citations: yes
+output: pdf_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(tidyverse)
+thm <- theme_classic() +
+  theme(
+    legend.position = "top",
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    legend.key = element_rect(fill = "transparent", colour = NA)
+  )
+theme_set(thm)
+here::i_am("assignment/Section4_Assignment.Rmd")
+pacman::p_load(tidyverse, here, dplyr, gtsummary, gt, webshot2,sandwich,stats,here, ggplot2,stats, graphics, splines,boot,ggExtra,formatR,
+               gridExtra,skimr,Hmisc,RColorBrewer, lmtest)
+
+s4file_loc <-here::here("data/section4_q4_data.csv")
+s4data <-read_csv(s4file_loc)
+```
+
+\doublespacing
+
+## Instructions (read carefully): 
+
+**Question 1:** You have been provided with a dataset from an observational cohort study to evaluate the effect of daily supplementation with 2000 mg of Omega-3 Fatty Acids (1200 mg EPA + 800 mg DHA) on the  number of severe asthma attacks over a three month follow-up period. The outcome is a binary [0,1] indicator of severe asthma attacks (any versus none). The exposure is an indicator of whether the person took their supplement or not. There is also information on four strong baseline confounding variables: age (in years), body mass index (in kg/m^2), asthma medication use (regular versus irregular use), and a measure of overall diet quality. All of the variables in the dataset are complete (i.e., no missing data).
+
+You've been asked to demonstrate to your clinical colleagues the types of missingness, and how they might affect the confounder adjusted association between Omega-3 supplementation and asthma attacks. Specifically, you've been asked to set a proportion of the observations for the Omega-3 supplementation exposure variable to missing under MCAR, MAR, and MNAR. The exact proportion of missingness doesn't matter.
+
+Describe three different mechanism you would use to set a proportion of the exposure variable to missing if the missingness was MCAR (mechanism 1), MAR (mechanism 2), and MNAR (mechanism 3).
+
+RQ: association of daily supplements on asthma attacks
+Exposure: Omega-3 binary indicator exposure 
+Outcome: Binary indicator of severe asthma attacks (any/none)
+Confounders:  age (in years), body mass index (in kg/m^2), asthma medication use (regular versus irregular use), and a measure of overall diet quality
+
+MCAR: Data are considered missing completely at random (MCAR) if the probability of missingness does not depend on any other variables, either measured or unmeasured.
+- set proportion of observations randomly and set it to missing variable, missingness is not conditional
+
+MAR: Data are considered missing at random (MAR) if the probability of missingness depends on other variables, AND these other variables are measured and available in the data
+- what is missing at rnadom 
+- adjust for confounding variables 
+
+MNAR: Data are considered not missing at random if the probabilty of missingness
+depends on other variables, AND these other variables are NOT measured, and
+thus not available in the data.
+- generate missingness on another variable then delete that variable from the dataset 
+ie: base it on bmi, then delete bmi
+determine the missing probability based on another variable 
+
+**Question 2:** Define non-monotone missingness. Describe the main complication introduced by the non-monotone missingness pattern. What type of imputation techniques can you use with non-monotone missing data.
+
+Non-monotone missingness: when the pattern of missing data is 
+
+- when it is not possible to g
+- cannot use ip weights for non-monotone
+- for monotone, we can use imputed variables to figure out non imputed variable 
+
+for nmt - randomly missing data, 
+
+
+**Question 3:** You are asked to estimate the ATE, and the outcome variable is missing 17\% of it's observations. You and your colleagues are confident that this missingness is MAR. Your clinical colleague states that they want you to do a complete case analysis because you "should never impute the outcome." Describe an analytic scenario where a complete case analysis will still be valid, even though your missing outcome data are MAR. Describe an analytic scenario where a complete case analysis will NOT be valid.
+when outcome is mar 
+
+Complete case analyses proceed by basically removing all observations with any missing data. This approach will only work if missing data are MCAR.
+
+
+
+Analytic Scenario where case analysis is valid:
+
+
+
+Analytic Scenario where case analysis is not valid:
+
+
+
+**Question 4:** Use the `section4_q4_data.csv` data to estimate the average treatment effect between quitting smoking and the difference in weight between 1971 and 1982. Use marginal standardization AND inverse probability of exposure weighting to estimate this effect, and adjust for sex, age, and race using main effects terms only (i.e., no splines, no polynomials, no interactions). Use the `mice` package to impute any missing data.
+
+Impute missing outcome data using all other variables in the dataset.
+
+Impute missing age data using only `sex` and `qsmk`.
+
+Impute missing race data using `age`, `sex`, and `wt82_71`.
+
+Use the bootstrap to obtain correct 95% confidence intervals for the estimated ATE. Be sure to set appropriate seeds for reproducibility. Set the number of resamples to 200. It may take a few minutes for your code to run.
+
