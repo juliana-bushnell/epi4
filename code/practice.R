@@ -4,3 +4,4 @@ here::i_am("code/practice.R")
 asthma<-read.csv(here::here("data/asthma.csv"))
 
 
+# cmd + shift + c = comment automatically

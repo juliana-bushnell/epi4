@@ -13,8 +13,6 @@ always_allow_html: true
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(here)
-library(tidyverse)
 thm <- theme_classic() +
   theme(
     legend.position = "top",
@@ -24,7 +22,7 @@ thm <- theme_classic() +
 theme_set(thm)
 here::i_am("assignment/Section4_Assignment.Rmd")
 pacman::p_load(tidyverse, here, dplyr, gtsummary, gt, webshot2,sandwich,stats,here, ggplot2,stats, graphics, splines,boot,ggExtra,formatR,
-               gridExtra,skimr,Hmisc,RColorBrewer, lmtest)
+               gridExtra,skimr,Hmisc,RColorBrewer, lmtest, mice)
 
 s4file_loc <-here::here("data/section4_q4_data.csv")
 s4data <-read_csv(s4file_loc)
@@ -35,9 +33,7 @@ s4data <-read_csv(s4file_loc)
 ## Instructions (read carefully): 
 
 **Question 1:** You have been provided with a dataset from an observational cohort study to evaluate the effect of daily supplementation with 2000 mg of Omega-3 Fatty Acids (1200 mg EPA + 800 mg DHA) on the  number of severe asthma attacks over a three month follow-up period. The outcome is a binary [0,1] indicator of severe asthma attacks (any versus none). The exposure is an indicator of whether the person took their supplement or not. There is also information on four strong baseline confounding variables: age (in years), body mass index (in kg/m^2), asthma medication use (regular versus irregular use), and a measure of overall diet quality. All of the variables in the dataset are complete (i.e., no missing data).
-
 You've been asked to demonstrate to your clinical colleagues the types of missingness, and how they might affect the confounder adjusted association between Omega-3 supplementation and asthma attacks. Specifically, you've been asked to set a proportion of the observations for the Omega-3 supplementation exposure variable to missing under MCAR, MAR, and MNAR. The exact proportion of missingness doesn't matter.
-
 Describe three different mechanism you would use to set a proportion of the exposure variable to missing if the missingness was MCAR (mechanism 1), MAR (mechanism 2), and MNAR (mechanism 3).
 
 RQ: association of daily supplements on asthma attacks
@@ -45,37 +41,45 @@ Exposure: Omega-3 binary indicator exposure
 Outcome: Binary indicator of severe asthma attacks (any/none)
 Confounders:  age (in years), body mass index (in kg/m^2), asthma medication use (regular versus irregular use), and a measure of overall diet quality
 
-MCAR: Data are considered missing completely at random (MCAR) if the probability of missingness does not depend on any other variables, either measured or unmeasured.
-- set proportion of observations randomly and set it to missing variable, missingness is not conditional
+##MCAR: 
+Data are considered missing completely at random (MCAR) if the probability of missingness does not depend on any other variables, either measured or unmeasured.
+Mechanism:
+-randomly assign a probability of missingness and apply it to the exposure variable
+#are we supposed to use marginal probability?
 
-MAR: Data are considered missing at random (MAR) if the probability of missingness depends on other variables, AND these other variables are measured and available in the data
-- what is missing at rnadom 
-- adjust for confounding variables 
+##MAR: 
+Data are considered missing at random (MAR) if the probability of missingness depends on other variables, AND these other variables are measured and available in the data
+Mechanism:
+- figure out the probability of missingness for another measured variable in our dataset & apply that probability of missingness to the exposure variable. 
 
-MNAR: Data are considered not missing at random if the probabilty of missingness
-depends on other variables, AND these other variables are NOT measured, and
-thus not available in the data.
-- generate missingness on another variable then delete that variable from the dataset 
-ie: base it on bmi, then delete bmi
-determine the missing probability based on another variable 
+##MNAR: 
+Data are considered not missing at random if the probability of missingness depends on other variables, AND these other variables are NOT measured, and thus not available in the data.
+- generate probability of missingness based on another variable, apply that probability of missigness to the exposure variable, then delete that variable from the dataset ie: base it on bmi, then delete bmi in order to properly simulate that data not being in the dataset
 
-**Question 2:** Define non-monotone missingness. Describe the main complication introduced by the non-monotone missingness pattern. What type of imputation techniques can you use with non-monotone missing data.
+**Question 2:** 
 
-Non-monotone missingness: when the pattern of missing data is 
+##Define non-monotone missingness.
+Nonmonotone missing data arises when it is not possible to arrange the data in order of increasing missingness. A typical example of non-monotone missing data is in a followup study, if various individuals miss some study visits then rejoin later on, the data is considered non-monotone missing (compared to if the individual drops off and just doesn't return)
 
-- when it is not possible to g
-- cannot use ip weights for non-monotone
-- for monotone, we can use imputed variables to figure out non imputed variable 
+##Describe the main complication introduced by the non-monotone missingness pattern.
+The imputation process is more complicated than if the data is monotone missingness pattern. The missing data for nonmonotone in a given variable has to be imputed conditionally on another variable in the dataset that contains missingness as well. For non-monotone missingness, we need use iterative missing imputation processes until the data converges to a stable solution (with the missing values as a function of other features). 
 
-for nmt - randomly missing data, 
+##What type of imputation techniques can you use with non-monotone missing data.
+You must use iterative imputation techniques (such as MICE), thus missing data is imputed using previously imputed data. Multiple imputations involves creating multiple plausible imputations for the missing data. These imputations are based on a model that incorporates all of the data in the dataset including the missing data. The results from each of the imputed datasets are combined to obtain estimates that account for the uncertainty introduced by the imputation process. You cannot use ip weights for non-monotone. 
 
 
-**Question 3:** You are asked to estimate the ATE, and the outcome variable is missing 17\% of it's observations. You and your colleagues are confident that this missingness is MAR. Your clinical colleague states that they want you to do a complete case analysis because you "should never impute the outcome." Describe an analytic scenario where a complete case analysis will still be valid, even though your missing outcome data are MAR. Describe an analytic scenario where a complete case analysis will NOT be valid.
-when outcome is mar 
+**Question 3:** You are asked to estimate the ATE, and the outcome variable is missing 17\% of it's observations. You and your colleagues are confident that this missingness is MAR. Your clinical colleague states that they want you to do a complete case analysis because you "should never impute the outcome." 
+
+Data are considered missing at random (MAR) if the probability of missingness depends on other variables that are measured and available in the dataset. 
+
+#Describe an analytic scenario where a complete case analysis will still be valid, even though your missing outcome data are MAR. 
+If the missing outcome data is missing at random, you can still use complete case analysis if the variable that the outcome data missingness is dependent on is not related to the other variables that are being used in the analysis. 
+
+#Describe an analytic scenario where a complete case analysis will NOT be valid when outcome is MAR.
+When the variable that the outcome data missigness is dependent on is related to other variables that are in the analysis (such as a confounding variable), then it is not appropraite to use a complete case analisis. 
+
 
 Complete case analyses proceed by basically removing all observations with any missing data. This approach will only work if missing data are MCAR.
-
-
 
 Analytic Scenario where case analysis is valid:
 
@@ -87,11 +91,83 @@ Analytic Scenario where case analysis is not valid:
 
 **Question 4:** Use the `section4_q4_data.csv` data to estimate the average treatment effect between quitting smoking and the difference in weight between 1971 and 1982. Use marginal standardization AND inverse probability of exposure weighting to estimate this effect, and adjust for sex, age, and race using main effects terms only (i.e., no splines, no polynomials, no interactions). Use the `mice` package to impute any missing data.
 
-Impute missing outcome data using all other variables in the dataset.
 
-Impute missing age data using only `sex` and `qsmk`.
+```{r average treatment effect marginal standardization}
+library(mice)
 
-Impute missing race data using `age`, `sex`, and `wt82_71`.
+factor_names <- c("sex", "race")
+s4data[, factor_names] <- lapply(s4data[, factor_names], factor)
 
-Use the bootstrap to obtain correct 95% confidence intervals for the estimated ATE. Be sure to set appropriate seeds for reproducibility. Set the number of resamples to 200. It may take a few minutes for your code to run.
+
+ini <- mice(s4data, seed = 16, maxit = 0)
+ini$method
+apply(ini$imp$age, 2, table)
+
+options(width = 90)
+pMatrix <- ini$predictorMatrix
+write.csv(pMatrix, here("data/pMatrix.csv"))
+pMatrix
+
+
+pMat <- read_csv(here("data/pMatrix1.csv"))[, -1]
+pMat <- as.matrix(pMat)
+row.names(pMat) <- colnames(pMat)
+pMat
+
+#mice_imp <- mice(s4data, seed = 16, m = 200, maxit = 20, printFlag = F, method = ini$method, pMatrix = pMat)
+```
+
+
+```{r loop, results='hide'}
+est.psi <- NULL
+est.gcomp<- NULL
+set.seed(16)
+for(ii in 1:200){ ## set the max number to 200!!, do ipw then g comp 
+index <- sample(1:nrow(s4data),nrow(s4data),replace=T)
+boot_dat <- s4data[index,]
+mice_imp <- mice(boot_dat,
+#seed=123,
+m=1,
+maxit=20,
+printFlag = F,
+method=ini$method,
+pMatrix=pMat)
+imp_data <- complete(mice_imp,action="long")
+
+#ipw
+ps <- glm(qsmk ~ sex+age+race, data = (imp_data), family=binomial(link="logit"))$fitted.values
+qsmk <- imp_data$qsmk
+num <- mean(qsmk) * qsmk + (1 - mean(qsmk)) * (1 - qsmk)
+den <- ps * qsmk + (1 - ps) * (1 - qsmk)
+sw <- num/den
+mod <- lm(wt82_71 ~ qsmk, weights = sw, data = subset(imp_data))
+est.psi <- rbind(est.psi, coef(mod)[2])
+##do not need SE portion for IPW
+#g function
+modY <- lm(wt82_71 ~ qsmk+age+sex+race,data=imp_data)
+pY1 <- mean(predict(modY,newdata=transform(imp_data,qsmk=1)))
+pY0 <- mean(predict(modY,newdata=transform(imp_data,qsmk=0)))
+est.gcomp <- rbind(est.gcomp,pY1-pY0)
+}
+
+mean_psi<-mean(est.psi)
+sd_psi<-sd(est.psi)
+CI_psi<-1.96*sd_psi
+UL_CI_psi<-mean_psi+CI_psi
+LL_CI_psi<-mean_psi-CI_psi
+
+mean_gcomp<-mean(est.gcomp)
+sd_gcomp<-sd(est.gcomp)
+CI_gcomp<-1.96*sd_gcomp
+UL_CI_gcomp<-mean_gcomp+CI_gcomp
+LL_CI_gcomp<-mean_gcomp-CI_gcomp
+```
+
+```{r, echo = F}
+S4_Q4_table <- tibble(Method = c("PSI","GComp"),
+                      `Average Treatment Effect` = c("3.16", "3.21"),
+                      `Standard Error` = c("0.59","0.60"),
+                      `95% CI` = c("2.00-4.33", "2.04-4.38"))
+view(S4_Q4_table)
+```
 
