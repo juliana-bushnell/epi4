@@ -11,7 +11,9 @@ output: pdf_document
 always_allow_html: true
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
+pacman::p_load(tidyverse, here, dplyr, gtsummary, gt, webshot2,sandwich,stats,here, ggplot2,stats, graphics, splines,boot,ggExtra,formatR,
+               gridExtra,skimr,Hmisc,RColorBrewer, lmtest, mice,gridExtra)
 knitr::opts_chunk$set(echo = TRUE)
 thm <- theme_classic() +
   theme(
@@ -21,16 +23,11 @@ thm <- theme_classic() +
   )
 theme_set(thm)
 here::i_am("assignment/Section4_Assignment.Rmd")
-pacman::p_load(tidyverse, here, dplyr, gtsummary, gt, webshot2,sandwich,stats,here, ggplot2,stats, graphics, splines,boot,ggExtra,formatR,
-               gridExtra,skimr,Hmisc,RColorBrewer, lmtest, mice)
-
 s4file_loc <-here::here("data/section4_q4_data.csv")
 s4data <-read_csv(s4file_loc)
 ```
 
 \doublespacing
-
-## Instructions (read carefully): 
 
 **Question 1:** You have been provided with a dataset from an observational cohort study to evaluate the effect of daily supplementation with 2000 mg of Omega-3 Fatty Acids (1200 mg EPA + 800 mg DHA) on the  number of severe asthma attacks over a three month follow-up period. The outcome is a binary [0,1] indicator of severe asthma attacks (any versus none). The exposure is an indicator of whether the person took their supplement or not. There is also information on four strong baseline confounding variables: age (in years), body mass index (in kg/m^2), asthma medication use (regular versus irregular use), and a measure of overall diet quality. All of the variables in the dataset are complete (i.e., no missing data).
 You've been asked to demonstrate to your clinical colleagues the types of missingness, and how they might affect the confounder adjusted association between Omega-3 supplementation and asthma attacks. Specifically, you've been asked to set a proportion of the observations for the Omega-3 supplementation exposure variable to missing under MCAR, MAR, and MNAR. The exact proportion of missingness doesn't matter.
@@ -41,58 +38,48 @@ Exposure: Omega-3 binary indicator exposure
 Outcome: Binary indicator of severe asthma attacks (any/none)
 Confounders:  age (in years), body mass index (in kg/m^2), asthma medication use (regular versus irregular use), and a measure of overall diet quality
 
-##MCAR: 
+**MCAR: **
 Data are considered missing completely at random (MCAR) if the probability of missingness does not depend on any other variables, either measured or unmeasured.
 Mechanism:
 -randomly assign a probability of missingness and apply it to the exposure variable
-#are we supposed to use marginal probability?
 
-##MAR: 
+**MAR: **
 Data are considered missing at random (MAR) if the probability of missingness depends on other variables, AND these other variables are measured and available in the data
 Mechanism:
 - figure out the probability of missingness for another measured variable in our dataset & apply that probability of missingness to the exposure variable. 
 
-##MNAR: 
+**MNAR: **
 Data are considered not missing at random if the probability of missingness depends on other variables, AND these other variables are NOT measured, and thus not available in the data.
 - generate probability of missingness based on another variable, apply that probability of missigness to the exposure variable, then delete that variable from the dataset ie: base it on bmi, then delete bmi in order to properly simulate that data not being in the dataset
 
 **Question 2:** 
 
-##Define non-monotone missingness.
+**Define non-monotone missingness.**
 Nonmonotone missing data arises when it is not possible to arrange the data in order of increasing missingness. A typical example of non-monotone missing data is in a followup study, if various individuals miss some study visits then rejoin later on, the data is considered non-monotone missing (compared to if the individual drops off and just doesn't return)
 
-##Describe the main complication introduced by the non-monotone missingness pattern.
-The imputation process is more complicated than if the data is monotone missingness pattern. The missing data for nonmonotone in a given variable has to be imputed conditionally on another variable in the dataset that contains missingness as well. For non-monotone missingness, we need use iterative missing imputation processes until the data converges to a stable solution (with the missing values as a function of other features). 
+**Describe the main complication introduced by the non-monotone missingness pattern.**
+The imputation process is more complicated than if the data is monotone missingness pattern. The missing data for nonmonotone in a given variable has to be imputed conditionally on another variable in the dataset that contains missingness as well.
 
-##What type of imputation techniques can you use with non-monotone missing data.
-You must use iterative imputation techniques (such as MICE), thus missing data is imputed using previously imputed data. Multiple imputations involves creating multiple plausible imputations for the missing data. These imputations are based on a model that incorporates all of the data in the dataset including the missing data. The results from each of the imputed datasets are combined to obtain estimates that account for the uncertainty introduced by the imputation process. You cannot use ip weights for non-monotone. 
+**What type of imputation techniques can you use with non-monotone missing data.**
+We must use iterative imputation techniques (such as MICE), thus missing data is imputed using previously imputed data until the data converges to a stable solution (with the missing values as a function of other features). Multiple imputations involves creating multiple plausible imputations for the missing data. These imputations are based on a model that incorporates all of the data in the dataset including the missing data. The results from each of the imputed datasets are combined to obtain estimates that account for the uncertainty introduced by the imputation process.
 
 
 **Question 3:** You are asked to estimate the ATE, and the outcome variable is missing 17\% of it's observations. You and your colleagues are confident that this missingness is MAR. Your clinical colleague states that they want you to do a complete case analysis because you "should never impute the outcome." 
 
-Data are considered missing at random (MAR) if the probability of missingness depends on other variables that are measured and available in the dataset. 
+Complete case analyses proceed by removing all the observations with any missing data. This approach is generally only valid if missing data are MCAR. Data are considered missing at random (MAR) if the probability of missingness depends on other variables that are measured and available in the dataset. While generally, CCA are only to be used if the missing data are MCAR, there can be a scenario where a CCA will still be valid, even though the missing outcome data are MAR.
 
-#Describe an analytic scenario where a complete case analysis will still be valid, even though your missing outcome data are MAR. 
-If the missing outcome data is missing at random, you can still use complete case analysis if the variable that the outcome data missingness is dependent on is not related to the other variables that are being used in the analysis. 
+**Describe an analytic scenario where a complete case analysis will still be valid, even though your missing outcome data are MAR.**
+If the missing outcome data is missing at random, you can still use complete case analysis if the variable that the outcome data missingness is dependent on is not a variable that is being used in the analysis and is independent of the outcome, and you are using a g computation or conditional regression model. 
 
-#Describe an analytic scenario where a complete case analysis will NOT be valid when outcome is MAR.
-When the variable that the outcome data missigness is dependent on is related to other variables that are in the analysis (such as a confounding variable), then it is not appropraite to use a complete case analisis. 
-
-
-Complete case analyses proceed by basically removing all observations with any missing data. This approach will only work if missing data are MCAR.
-
-Analytic Scenario where case analysis is valid:
-
-
-
-Analytic Scenario where case analysis is not valid:
+**Describe an analytic scenario where a complete case analysis will NOT be valid when outcome is MAR.**
+When the variable that the outcome data missingness is dependent on is related to other variables that are in the analysis (such as a confounding variable), then it is not appropriate to use a complete case analysis. 
 
 
 
 **Question 4:** Use the `section4_q4_data.csv` data to estimate the average treatment effect between quitting smoking and the difference in weight between 1971 and 1982. Use marginal standardization AND inverse probability of exposure weighting to estimate this effect, and adjust for sex, age, and race using main effects terms only (i.e., no splines, no polynomials, no interactions). Use the `mice` package to impute any missing data.
 
 
-```{r average treatment effect marginal standardization}
+```{r average treatment effect marginal standardization, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 library(mice)
 
 factor_names <- c("sex", "race")
@@ -117,8 +104,7 @@ pMat
 #mice_imp <- mice(s4data, seed = 16, m = 200, maxit = 20, printFlag = F, method = ini$method, pMatrix = pMat)
 ```
 
-
-```{r loop, results='hide'}
+```{r loop, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, results='hide'}
 est.psi <- NULL
 est.gcomp<- NULL
 set.seed(16)
@@ -131,7 +117,7 @@ m=1,
 maxit=20,
 printFlag = F,
 method=ini$method,
-pMatrix=pMat)
+predictorMatrix=pMat)
 imp_data <- complete(mice_imp,action="long")
 
 #ipw
@@ -163,11 +149,12 @@ UL_CI_gcomp<-mean_gcomp+CI_gcomp
 LL_CI_gcomp<-mean_gcomp-CI_gcomp
 ```
 
-```{r, echo = F}
-S4_Q4_table <- tibble(Method = c("PSI","GComp"),
-                      `Average Treatment Effect` = c("3.16", "3.21"),
+```{r table,  echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+S4_Q4_table <- tibble(Method = c("Inverse Probability Weighting","Marginal Standardization"),
+                      `Average Treatment Effect` = c("2.97", "3.03"),
                       `Standard Error` = c("0.59","0.60"),
-                      `95% CI` = c("2.00-4.33", "2.04-4.38"))
-view(S4_Q4_table)
+                      `95% CI` = c("1.81-4.13", "1.85-4.20"))
+knitr::kable(S4_Q4_table, caption= "Average Treatement Effect and the 95% CIs using Standard Deviation for the relationships between quitting smoking and change in weight between 1971-82")
 ```
+
 
