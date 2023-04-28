@@ -145,6 +145,7 @@ Exchangeability implies that the potential outcome of the exposure Y^x is indepe
 **Question 11:** Consider a regression model with an exposure and 11 confounders, for a total of 12 variables:
 
 $$ E(Y \mid X, \mathbf{C}) = \beta_0 + \beta_1 X + \beta_2 C_1 + \ldots + \beta_{12} C_{11} $$
+
 What is the total number of possible interactions in this model? What are the total number of 2-way interactions? Show your reasoning.
 
 We can have up to 4083 k-way interactions.

@@ -1,0 +1,50 @@
+---
+title: "Section 5 Assignment"
+header-includes:
+    - \usepackage{setspace}
+    - \usepackage{xfrac}
+    - \DeclareMathOperator{\logit}{logit}
+    - \DeclareMathOperator{\expit}{expit}
+urlcolor: blue
+link-citations: yes
+output: pdf_document
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(tidyverse)
+thm <- theme_classic() +
+  theme(
+    legend.position = "top",
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    legend.key = element_rect(fill = "transparent", colour = NA)
+  )
+theme_set(thm)
+```
+
+\doublespacing
+
+## Instructions (read carefully): 
+
+* Each student must submit their own (independent) work.
+* Assignments must be done using RMarkdown.
+* Submissions must include the .pdf file and the reproducible .rmd file used to do the homework. R code for all applied questions must be provided and be executable in the .rmd file.
+* Students should use the practices covered in Section 0 of the course to organize their folder structure and code (i.e., using RStudio Projects with the here package).
+* This assignment is due electronically through CANVAS on Sunday April 30 2023.
+
+**Question 1:** Consider the following linear regression model: 
+
+$$E(Y \mid X_1, X_2, X_3) = \beta_0 + \beta_1 X_1 + + \beta_2 X_2 + \beta_3 X_3$$
+Suppose you are interested in the estimated standard error for $\beta_1$: $SE(\beta_1)$. What is the primary distinction between a model-based standard error versus a robust (e.g., HC1) standard error estimator?
+
+***
+
+**Question 2:** Suppose you have a dataset with over 15 million observations and many covariates, and you would like to deploy a bootstrap estimator in R usign the `boot` and `boot.ci` functions for 95% confidence intervals. Would the bias-corrected and accelerated bootstrap estimator be useful in this case? Why or why not?
+
+***
+
+**Question 3:** What is the bias correction factor meant to correct in the bias corrected and accelerated bootstrap confidence intervals?
+
+***
